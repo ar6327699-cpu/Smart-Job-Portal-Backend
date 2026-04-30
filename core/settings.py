@@ -23,18 +23,23 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     # Aapki Custom Apps (Check karein aapka folder 'app' hai ya 'apps')
     'app.accounts', 
     'app.jobs',
-    
+    'django_filters', 
 ]
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
      'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer', # <--- Sirf JSON dikhayega
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer', # Browser mein test karne ke liye
     ],
+    # Pagination: Ek page par 10 items show honge
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
 }
 
 MIDDLEWARE = [

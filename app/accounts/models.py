@@ -13,6 +13,7 @@ class User(AbstractUser):
     phone = models.CharField(max_length=15, blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
     bio = models.TextField(max_length=500, blank=True, null=True)
+    skills = models.CharField(max_length=255, blank=True, null=True, help_text="Apni skills likhein (e.g., Python, Django, React)")
 
     def __str__(self):
         return f"{self.username} ({'Seeker' if self.is_seeker else 'Employer'})"
