@@ -1,0 +1,25 @@
+# Python compiled bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django local configuration and secrets
+.env
+db.sqlite3
+db.sqlite3-journal
+db.sqlite3-shm
+db.sqlite3-wal
+
+# Static and media asset directories
+media/
+staticfiles/
+static/
+
+# Editor files and local caches
+.vscode/
+.idea/
+.DS_Store
+*.suo
+*.sln
+*.swp
+*.bak

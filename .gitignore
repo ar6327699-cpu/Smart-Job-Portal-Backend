@@ -1,0 +1,39 @@
+# ====================================================================
+#              MASTER FULL-STACK MONOREPO GITIGNORE
+# ====================================================================
+
+# 🎨 REACT FRONTEND IGNORES
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+frontend/.env
+frontend/.eslintcache
+
+# 🐍 DJANGO BACKEND IGNORES
+job_portal/__pycache__/
+job_portal/*.py[cod]
+job_portal/*$py.class
+job_portal/.env
+job_portal/db.sqlite3
+job_portal/db.sqlite3-journal
+job_portal/db.sqlite3-shm
+job_portal/db.sqlite3-wal
+job_portal/media/
+job_portal/staticfiles/
+job_portal/static/
+
+# 💻 GENERAL DEVELOPMENT ENVIRONMENTS
+.vscode/
+.idea/
+.DS_Store
+*.suo
+*.sln
+*.swp
+*.bak
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
