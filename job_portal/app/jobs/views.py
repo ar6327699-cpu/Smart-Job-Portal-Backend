@@ -8,14 +8,14 @@ class JobViewSet(viewsets.ModelViewSet):
     queryset = Job.objects.filter(is_active=True).order_by('-created_at')
     serializer_class = JobSerializer
     
-    # Filtering aur Search ki settings
+    # Configuration for API filters and search fields
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['job_type', 'location'] # In fields par exact filter lagega
-    search_fields = ['title', 'description', 'employer__username'] # In fields mein word search hoga
+    filterset_fields = ['job_type', 'location'] # Precise attribute filters
+    search_fields = ['title', 'description', 'employer__username'] # Full-text query fields
     
     def get_permissions(self):
-        # List aur Retrieve (dekhne ke liye) har kisi ko ijazat hai.
-        # Job bananay, edit karne ya delete karne ke liye login hona zaroori hai.
+        # Allow unrestricted viewing (list & retrieve).
+        # Require authentication for creating, updating, or deleting listings.
         if self.action in ['list', 'retrieve']:
             permission_classes = [permissions.AllowAny]
         else:
@@ -23,28 +23,27 @@ class JobViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def perform_create(self, serializer):
-        # Check karna ke kya user employer hai?
+        # Ensure the request user is registered as an employer
         if not getattr(self.request.user, 'is_employer', False):
-            raise PermissionDenied("Sirf employers job post kar sakte hain.")
+            raise PermissionDenied("Only registered employers are allowed to publish job listings.")
         
-        # Save karte waqt employer ko logged-in user set kar dena
+        # Automatically assign the authenticated user as the job owner
         serializer.save(employer=self.request.user)
 
     def perform_update(self, serializer):
-        # Securing update: Check ownership
+        # Enforce strict object-level update permissions
         if serializer.instance.employer != self.request.user:
             raise PermissionDenied("Aap sirf apni hi posted jobs edit kar sakte hain.")
         serializer.save()
 
     def perform_destroy(self, instance):
-        # Securing delete: Check ownership
+        # Enforce strict object-level destruction permissions
         if instance.employer != self.request.user:
             raise PermissionDenied("Aap sirf apni hi posted jobs delete kar sakte hain.")
         instance.delete()
 
     def get_queryset(self):
-        # Agar request employer ki taraf se hai aur wo apni jobs dekhna chahta hai
-        # (Hum yahan default queryset hi return kar rahe hain, magar ise customize kiya ja sakta hai)
+        # Return default active listings (can be customized for specific employer views)
         return super().get_queryset()
 
 class ApplicationViewSet(viewsets.ModelViewSet):
@@ -54,22 +53,22 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if getattr(user, 'is_employer', False):
-            # Agar employer hai toh usko sirf uski jobs ki applications dikhao
+            # Employers see incoming applications for jobs they posted
             return Application.objects.filter(job__employer=user).order_by('-applied_at')
         elif getattr(user, 'is_seeker', False):
-            # Agar seeker hai toh usne jahan apply kiya hai wo dikhao
+            # Job seekers see application entries they submitted
             return Application.objects.filter(seeker=user).order_by('-applied_at')
         return Application.objects.none()
 
     def perform_create(self, serializer):
-        # Check karna ke kya user job seeker hai?
+        # Ensure only job seekers can apply to listings
         if not getattr(self.request.user, 'is_seeker', False):
-            raise PermissionDenied("Sirf job seekers apply kar sakte hain.")
+            raise PermissionDenied("Only registered job seekers can submit applications.")
         
-        # Save karte waqt seeker ko logged-in user set kar dena
+        # Link application securely to the authenticated seeker
         application = serializer.save(seeker=self.request.user)
         
-        # Email bhejna manually apply karne par
+        # Dispatch confirmation email for manual application submissions
         seeker = application.seeker
         job = application.job
         if seeker.email:

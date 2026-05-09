@@ -10,33 +10,33 @@ User = get_user_model()
 @receiver(post_save, sender=Job)
 def auto_apply_to_new_job(sender, instance, created, **kwargs):
     if created:
-        # 1. Sirf un seekers ko nikalo jinka 'auto_apply_enabled' True hai
+        # 1. Fetch all job seekers with AI Auto-Apply enabled
         seekers = User.objects.filter(is_seeker=True, auto_apply_enabled=True)
         
-        # 2. Job ka text lein (title + description) aur lower case kar lein matching ke liye
+        # 2. Extract and format job content for keyword evaluation
         job_text = f"{instance.title} {instance.description}".lower()
         
         applications = []
         seekers_to_email = []
         
         for seeker in seekers:
-            # Agar seeker ne skills nahi likhi toh skip karein
+            # Skip candidates with no specified skills
             if not seeker.skills:
                 continue
                 
-            # 3. Seeker ki skills ko comma (,) se alag karein aur list banayein
+            # 3. Parse comma-separated candidate skills into a clean, normalized list
             seeker_skills = [skill.strip().lower() for skill in seeker.skills.split(',') if skill.strip()]
             
             if len(seeker_skills) == 0:
                 continue
-
-            # 4. Check karein ke seeker ki kitni skills job description mein mojood hain
+ 
+            # 4. Evaluate skill matching metrics
             matched_skills = [skill for skill in seeker_skills if skill in job_text]
             
-            # Kitne percent skills match huin
+            # Calculate match percentage
             match_percentage = (len(matched_skills) / len(seeker_skills)) * 100
             
-            # Agar 50% ya us se zyada skills match karti hain, tou auto-apply kar do
+            # 5. Automatically apply if the skill match is 50% or higher
             if match_percentage >= 50:
                 applications.append(
                     Application(
@@ -48,12 +48,12 @@ def auto_apply_to_new_job(sender, instance, created, **kwargs):
                 seekers_to_email.append(seeker)
                 print(f"Match found for {seeker.username}! Matched skills: {matched_skills}")
         
-        # 5. Jinki skills match hui hain, sirf unko hi auto-apply karo
+        # 6. Bulk create matching applications for database performance optimization
         if applications:
             Application.objects.bulk_create(applications)
-            print(f"Smart Automation: {len(applications)} seekers ki skills match hui aur auto-apply ho gaya!")
+            print(f"Smart Automation: Successfully auto-applied {len(applications)} matched seekers!")
             
-            # 6. Jin logon ka apply hua hai unko Email bhejain
+            # 7. Despatch confirmation emails asynchronously to matched applicants
             for seeker in seekers_to_email:
                 if seeker.email:
                     try:

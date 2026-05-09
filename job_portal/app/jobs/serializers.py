@@ -12,7 +12,7 @@ class JobSerializer(serializers.ModelSerializer):
         read_only_fields = ['employer', 'created_at']
 
 class ApplicationSerializer(serializers.ModelSerializer):
-    # API response mein thori asani ke liye naam aur job title bhej rahe hain
+    # Retrieve related field values directly for optimized API representations
     seeker_name = serializers.ReadOnlyField(source='seeker.username')
     seeker_email = serializers.ReadOnlyField(source='seeker.email')
     seeker_skills = serializers.ReadOnlyField(source='seeker.skills')
@@ -23,5 +23,5 @@ class ApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Application
         fields = ['id', 'job', 'job_title', 'seeker', 'seeker_name', 'seeker_email', 'seeker_phone', 'seeker_skills', 'seeker_bio', 'cover_letter', 'resume', 'status', 'applied_at']
-        # seeker, status, aur applied_at hum khud backend se handle karenge
+        # Read-only attributes managed dynamically on backend transaction
         read_only_fields = ['seeker', 'status', 'applied_at']
